@@ -47,9 +47,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
+    "rest_framework",
     "accounts",
     "engine",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
 
 cors_allowed_origins_str = env("CORS_ALLOWED_ORIGINS")
 if cors_allowed_origins_str:
