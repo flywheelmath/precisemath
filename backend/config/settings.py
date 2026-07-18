@@ -54,6 +54,9 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+SHARED_ANONYMIZATION_SALT = env("SHARED_ANONYMIZATION_SALT", default="")
+
 cors_allowed_origins_str = env("CORS_ALLOWED_ORIGINS")
 if cors_allowed_origins_str:
     CORS_ALLOWED_ORIGINS = [
