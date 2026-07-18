@@ -4,6 +4,7 @@
 # unignore these extensions
 !*/
 !*.gitignore
+!*requirements.txt
 
 !*.md
 !*.tex
@@ -27,3 +28,5 @@ token.json
 *.swp
 node_modules
 staticfiles/
+fluency_games/
+legacy_data/
