@@ -1,14 +1,15 @@
-import hashlib
 import gc
+import hashlib
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, get_user_model, login
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
-from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from django.contrib.auth import get_user_model
+from google.oauth2 import id_token
 
 User = get_user_model()
 
@@ -83,3 +84,51 @@ def native_credentials_login(request):
         return Response(response_payload, status=status.HTTP_200_OK)
 
     return Response({"error": "Invalid credentials supplied"}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def uuid_batch_sync(request):
+    """
+    Privileged batch endpoint for UUID sync script.
+    Accepts an array of objects: [{"username": "sha256_hash", "uuid": "roster_uuid"}]
+    """
+    auth_header = request.headers.get("Authorization", "")
+    expected_token = f"Token {settings.UUID_SYNC_TOKEN}"
+
+    if auth_header != expected_token:
+        return Response({"error": "Unauthorized sync signature"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    roster_data = request.data.get("roster", [])
+    if not isinstance(roster_data, list):
+        return Response({"error": "Invalid format. Expected a list under the key 'roster'"}, status=status.HTTP_400_BAD_REQUEST)
+
+    success_count = 0
+    errors = []
+
+    try:
+        with transaction.atomic():
+            for index, item in enumerate(roster_data):
+                username = item.get("username")
+                uuid = item.get("uuid")
+
+                if not username or not uuid:
+                    errors.append(f"Row {index}: Missing required username or uuid.")
+                    continue
+
+                username_clean = username.strip().lower()
+                user, clean = User.objects.update_or_create(
+                    username=username_clean,
+                    defaults={"uuid": uuid}
+                )
+                success_count += 1
+
+    except Exception as e:
+        return Response({"error": f"Database transaction failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    response_payload = {
+        "status": "complete",
+        "processed_records": success_count,
+        "errors": errors
+    }
+
+    return Response(response_payload, status=status.HTTP_200_OK)

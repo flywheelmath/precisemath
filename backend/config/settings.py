@@ -56,6 +56,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
 SHARED_ANONYMIZATION_SALT = env("SHARED_ANONYMIZATION_SALT", default="")
+UUID_SYNC_TOKEN = env("UUID_SYNC_TOKEN")
 
 cors_allowed_origins_str = env("CORS_ALLOWED_ORIGINS")
 if cors_allowed_origins_str:
