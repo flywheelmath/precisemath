@@ -23,11 +23,10 @@
 # reignore this stuff
 .env
 .venv/
+
 credentials.json
 token.json
+
 *.swp
-node_modules
 staticfiles/
-fluency_games/
-legacy_data/
 draft/
