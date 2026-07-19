@@ -1,5 +1,5 @@
 import hashlib
-from engine.constants import ADJECTIVES, NAMES
+from .constants import ADJECTIVES, NAMES
 
 def generate_pseudonym(identifier: str, is_guest: bool = False) -> str:
     if is_guest: return f"Guest-{identifier}"

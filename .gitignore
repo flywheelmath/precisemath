@@ -30,3 +30,4 @@ node_modules
 staticfiles/
 fluency_games/
 legacy_data/
+draft/
