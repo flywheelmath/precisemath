@@ -1,9 +1,5 @@
 from django.db.models import Avg, Case, Count, FloatField, When
-<<<<<<< Updated upstream
-from .models import (
-=======
 from .models_session import (
->>>>>>> Stashed changes
     PromptResponse,
     PlayerSkillProfile,
 )

@@ -1,10 +1,7 @@
-<<<<<<< Updated upstream
-=======
 ###
 Placeholder: copied from legacy repo.
 ###
 
->>>>>>> Stashed changes
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

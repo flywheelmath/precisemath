@@ -15,11 +15,7 @@ from .models_session import (
 )
 from .logic.formatting import enrich_math_data
 from .services import compute_player_skill_level
-<<<<<<< Updated upstream
-from .utils import generate_pseudonym
-=======
 from .utils.pseudonyms import generate_pseudonym
->>>>>>> Stashed changes
 
 User = get_user_model()
 
