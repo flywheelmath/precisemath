@@ -3,15 +3,20 @@ from django.contrib import admin
 from django.forms import widgets
 from django.db import models
 
-from .models import (
-    PromptResponse,
+from .models_prompt import (
     InteractionType,
     Category,
-    Session,
     Skill,
     SkillLevel,
     Prompt,
 )
+from .models_session import (
+    Player,
+    PromptResponse,
+    Session
+)
+
+
 
 
 @admin.register(InteractionType)
@@ -71,6 +76,12 @@ class PromptAdmin(admin.ModelAdmin):
         "skill_level__name",
         "skill_level__slug",
     )
+
+
+@admin.register(Player)
+class PlayerInline(admin.ModelAdmin):
+    list_display = ("user", "pseudonym", "is_guest")
+    search_fields = ("user", "pseudonym", "is_guest")
 
 
 class PromptResponseInline(admin.TabularInline):
