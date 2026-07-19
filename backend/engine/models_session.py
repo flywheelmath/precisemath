@@ -41,23 +41,22 @@ class Player(models.Model):
 
 
 class PlayerSkillProfile(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     player = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
-        null=True,
+        null=False,
         blank=True
     )
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    user_skill_level = models.PositiveIntegerField(default=1)
+    player_skill_level = models.PositiveIntegerField(default=1)
 
     class Meta:
-        unique_together = ["user", "skill"]
+        unique_together = ["player", "skill"]
 
 
 class Session(models.Model):
     """
-    Represents a single practice session undertaken by a user.
+    Represents a single practice session undertaken by a player.
     """
 
     id = models.UUIDField(
@@ -65,31 +64,18 @@ class Session(models.Model):
         default=uuid.uuid4,
         editable=False,
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="sessions",
-        help_text="Username of the registered user for this session.",
-    )
     player = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
-        null=True,
+        null=False,
         blank=True
     )
-    guest_username = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Username provided by a guest user for this session.",
-    )
-    user_skill_level = models.ForeignKey(
+    player_skill_level = models.ForeignKey(
         SkillLevel,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        help_text="User's skill level at the time of the session.",
+        help_text="Player's skill level at the time of the session.",
     )
     skill = models.ForeignKey(Skill, on_delete=models.PROTECT, related_name="sessions")
     start_time = models.DateTimeField(
@@ -113,14 +99,8 @@ class Session(models.Model):
         ordering = ["-end_time"]
 
     def __str__(self):
-        if self.user:
-            user_str = getattr(self.user, "username", str(self.user.id))
-        elif self.guest_username:
-            user_str = self.guest_username
-        else:
-            user_str = "anonymous"
         return (
-            f"User {self.id} - {self.skill.name} - {self.end_time.strftime('%Y-%m-%d %H:%M')}"
+            f"{self.player} - {self.skill.name} - {self.end_time.strftime('%Y-%m-%d %H:%M')}"
         )
 
 
@@ -157,8 +137,8 @@ class PromptResponse(models.Model):
         null=True,
         help_text="UI interaction details.",
     )
-    user_response = models.CharField(
-        max_length=255, help_text="User's submitted response."
+    player_response = models.CharField(
+        max_length=255, help_text="Player's submitted response."
     )
 
     class Meta:

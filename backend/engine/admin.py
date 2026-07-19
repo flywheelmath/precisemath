@@ -90,8 +90,8 @@ class PromptResponseInline(admin.TabularInline):
     """
 
     model = PromptResponse
-    list_display = ("prompt", "was_correct", "time_spent_ms", "user_response")
-    readonly_fields = ("prompt", "was_correct", "time_spent_ms", "user_response")
+    list_display = ("prompt", "was_correct", "time_spent_ms", "player_response")
+    readonly_fields = ("prompt", "was_correct", "time_spent_ms", "player_response")
     can_delete = False
     extra = 0
 
@@ -102,9 +102,9 @@ class SessionAdmin(admin.ModelAdmin):
     Admin configuration for the Session model.
     """
 
-    list_display = ("__str__", "skill", "total_correct", "total_incorrect", "duration")
-    list_filter = ("skill", "user", "user__first_name", "user__last_name", "start_time")
-    search_fields = ("user__username", "user__first_name", "user__last_name", "guest_username", "skill__name")
+    list_display = ("player", "skill", "total_correct", "total_incorrect", "duration")
+    list_filter = ("skill", "player", "start_time")
+    search_fields = ("player", "skill__name")
     inlines = [PromptResponseInline]
 
     def get_readonly_fields(self, request, obj=None):
