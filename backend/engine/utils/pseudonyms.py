@@ -1,7 +1,7 @@
 import hashlib
 from engine.constants import ADJECTIVES, NAMES
 
-def generate_deterministic_pseudonym(identifier: str, is_guest: bool = False) -> str:
+def generate_pseudonym(identifier: str, is_guest: bool = False) -> str:
     if is_guest: return f"Guest-{identifier}"
 
     hash_int = int(hashlib.md5(identifier.encode()).hexdigest(), 16)

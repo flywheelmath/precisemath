@@ -9,12 +9,12 @@ def populate_pseudonyms(apps, schema_editor):
     User = apps.get_model(*settings.AUTH_USER_MODEL.split('.'))
     Session = apps.get_model("engine", "Session")
 
-    from engine.utils.pseudonyms import generate_deterministic_pseudonym
+    from engine.utils.pseudonyms import generate_pseudonym
 
     for user in User.objects.all():
         if not Player.objects.filter(user=user).exists():
             identifier = user.username
-            pseudonym = generate_deterministic_pseudonym(
+            pseudonym = generate_pseudonym(
                 identifier,
                 is_guest=False
             )
@@ -32,7 +32,7 @@ def populate_pseudonyms(apps, schema_editor):
 
         if guest_identifier and not Player.objects.filter(domain_identifier=guest_identifier).exists():
 
-            pseudonym = generate_deterministic_pseudonym(
+            pseudonym = generate_pseudonym(
                 guest_identifier,
                 is_guest=True
             )

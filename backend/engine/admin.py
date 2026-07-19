@@ -115,5 +115,6 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(PromptResponse)
 class PromptResponseAdmin(admin.ModelAdmin):
+    raw_id_fields = ("session", "prompt")
     list_display = ("session", "prompt", "was_correct", "time_spent_ms")
     list_filter = ("was_correct", "session__skill")
