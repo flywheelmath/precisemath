@@ -118,6 +118,7 @@ class SessionCreateSerializer(serializers.Serializer):
     guest_token = serializers.CharField(
         max_length=50, required=False, allow_blank=True, write_only=True
     )
+    is_final = serializers.BooleanField(default=False, write_only=True)
     responses = PromptResponseCreateSerializer(many=True, write_only=True)
 
     def create(self, validated_data):

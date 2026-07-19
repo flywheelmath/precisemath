@@ -103,7 +103,6 @@ class SessionResultsView(APIView):
     API endpoint to receive and save the results of a completed session.
     Allows any user, registered or not, to submit results.
     """
-
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -113,17 +112,14 @@ class SessionResultsView(APIView):
 
         if serializer.is_valid():
             session_instance = serializer.save()
-            new_level = None
-
-            if session_instance.player:
-                new_level = compute_player_skill_level(
-                    session_instance.player,
-                    session_instance.skill
-                )
+            from .models_session import PlayerSkillProfile
+            new_level = PlayerSkillProfile.objects.get_profile_rank(
+                session_instance.player,
+                session_instance.skill
+            )
 
             response_data = serializer.to_representation(session_instance)
-            if new_level is not None:
-                response_data["new_level"] = new_level
-
+            response_data["new_level"] = new_level
             return Response(response_data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
