@@ -1,15 +1,17 @@
 import gc
 import hashlib
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
+
+from engine.models_session import Player
 
 User = get_user_model()
 
@@ -132,3 +134,35 @@ def uuid_batch_sync(request):
     }
 
     return Response(response_payload, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def get_current_profile(request):
+    """
+    Checks the incoming session cookie or falls back to X-Guest-Token header.
+    Serves a unified zero-knowledge identity metadata block back to the UI.
+    """
+    user = request.user
+    guest_token = request.headers.get("X-Guest-Token")
+
+    try:
+        player = Player.objects.resolve_player(user, guest_token)
+
+        return Response({
+            "id": str(player.domain_identifier),
+            "is_guest": player.is_guest,
+            "display_name": player.pseudonym,
+            "pin": str(player.domain_identifier)[-4:].upper(),
+            "isAuthenticated": user.is_authenticated,
+        }, status=status.HTTP_200_OK)
+
+    except ValidationError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def session_logout(request):
+    """
+    Flushes the active session cookie out of the browser context.
+    """
+    logout(request)
+    return Response({"status": "logged_out"}, status=status.HTTP_200_OK)
