@@ -136,10 +136,10 @@ class SessionCreateSerializer(serializers.Serializer):
 
         if session_id:
             session = self._update_existing_session(session_id, player, validated_data)
+            self._upsert_responses(session, responses_data)
         else:
             session = self._create_new_session(player, validated_data)
-
-        self._bulk_create_responses(session, responses_data)
+            self._bulk_create_responses(session, responses_data)
 
         if is_final:
             compute_player_skill_level(player=player, skill=session.skill)
@@ -161,26 +161,19 @@ class SessionCreateSerializer(serializers.Serializer):
                 "total_incorrect", session.total_incorrect
             )
             session.save()
-
-            PromptResponse.objects.filter(session=session).delete()
             return session
         except Session.DoesNotExist:
-            raise serializers.ValidationError(
-                "The specified session does not exist."
-            )
+            raise serializers.ValidationError("The specified session does not exist.")
 
     def _create_new_session(self, player: Player, validated_data) -> Session:
         try:
-            category = Category.objects.get(
-                slug=validated_data.pop("category_slug")
-            )
+            category = Category.objects.get(slug=validated_data.pop("category_slug"))
             skill = Skill.objects.get(
-                category=category, slug=validated_data.pop("skill_slug")
+                category=category,
+                slug=validated_data.pop("skill_slug")
             )
         except (Category.DoesNotExist, Skill.DoesNotExist):
-            raise serializers.ValidationError(
-                "The specified category or skill does not exist."
-            )
+            raise serializers.ValidationError("The specified category or skill does not exist.")
 
         profile, _ = PlayerSkillProfile.objects.get_or_create_profile(player, skill)
 
@@ -214,6 +207,17 @@ class SessionCreateSerializer(serializers.Serializer):
                 )
             )
         PromptResponse.objects.bulk_create(prompts_to_create)
+
+    def _upsert_responses(self, session: Session, responses_data) -> None:
+        """
+        Saves ongoing updates.
+        Identifies rows already written by sequence index to reduce number of database writes during client sync cycles.
+        """
+        existing_indices = set(
+            PromptResponse.objects.filter(session=session).values_list("sequence_index", flat=True)
+        )
+        new_responses = [r for r in responses_data if r["sequence_index"] not in existing_indices]
+        if new_responses: self._bulk_create_responses(session, new_responses)
 
     def to_representation(self, instance):
         """Ensure the response always includes the session_id."""

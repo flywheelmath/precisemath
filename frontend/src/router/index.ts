@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 import { useIdentityStore } from '@/stores/identity';
 
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
+        redirect: '/session-library'
     },
     {
         path: '/login',

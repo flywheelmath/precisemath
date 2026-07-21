@@ -171,13 +171,6 @@ class PromptResponse(models.Model):
         null=True,
         help_text="Interaction type of the response.",
     )
-    interaction_config = models.CharField(
-        # delete this column in the interest of decoupling backend and frontend
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="UI interaction details.",
-    )
     player_response = models.CharField(
         max_length=255, help_text="Player's submitted response."
     )

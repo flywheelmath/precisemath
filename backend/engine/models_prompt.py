@@ -150,27 +150,6 @@ class Prompt(models.Model):
         blank=True,
         null=True,
     )
-    correct_response_number = models.IntegerField(
-        # delete column: replaced by correct_resposne JSON field
-        blank=True,
-        null=True,
-        help_text="Correct numerical response for the prompt.",
-    )
-    correct_response_string = models.CharField(
-        # delete column: replaced by correct_resposne JSON field
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Correct string response for the prompt.",
-    )
-    correct_response_array = ArrayField(
-        # delete column: replaced by correct_resposne JSON field
-        models.IntegerField(),
-        default=list,
-        blank=True,
-        null=True,
-        help_text="Correct array response for the prompt.",
-    )
     prompt_rank = models.IntegerField(
         blank=True,
         null=True,
