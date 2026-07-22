@@ -1,20 +1,24 @@
+// src/stores/identity.ts
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-import type { AuthState, PlayerProfile } from '@/types/auth';
+import { playerService } from '@/services/playerService';
+import type { Player } from '@/types/models';
+import { api } from '@/services/api';
 
 export const useIdentityStore = defineStore('identity', () => {
-    const authToken = ref<string | null>(localStorage.getItem('auth_token'));
+    const authenticatedPlayerId = ref<string | null>(localStorage.getItem('auth_player_id'));
     const guestToken = ref<string | null>(localStorage.getItem('guest_token'));
-    const player = ref<PlayerProfile | null>(null);
+    const player = ref<Player | null>(null);
 
-    const isAuthenticated = computed<boolean>(() => !!authToken.value);
+    const isAuthenticated = computed<boolean>(() => !!authenticatedPlayerId.value);
     const hasGuestAccess = computed<boolean>(() => !!guestToken.value);
-    const isIdentityLoaded = computed<boolean>(() => player.value !== null);
 
-    function setAuthToken(token: string) {
-        authToken.value = token;
-        localStorage.setItem('auth_token', token);
+    function login(playerId: string, profile: PlayerProfile) {
+        authenticatedPlayerId.value = playerId;
+        localStorage.setItem('auth_player_id', playerId);
+        player.value = profile;
         clearGuestToken();
     }
 
@@ -23,37 +27,64 @@ export const useIdentityStore = defineStore('identity', () => {
         localStorage.setItem('guest_token', token);
     }
 
-    function setPlayerProfile(profile: PlayerProfile) {
-        player.value = profile;
-    }
-
     function clearGuestToken() {
         guestToken.value = null;
         localStorage.removeItem('guest_token');
     }
 
     function clearIdentity() {
-        authToken.value = null;
+        authenticatedPlayerId.value = null;
         guestToken.value = null;
         player.value = null;
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_player_id');
         localStorage.removeItem('guest_token');
     }
 
+    async function checkSessionLifeCycle() {
+        try {
+            const response = await api.get('/auth/profile/');
+            if (response.data.isAuthenticated) {
+                authenticatedPlayerId.value = response.data.id;
+                localStorage.setItem('auth_player_id', response.data.id);
+                player.value = {
+                    id: response.data.id,
+                    is_guest: false,
+                    display_name: response.data.display_name,
+                } as Player;
+            }
+            else {
+                if (!guestToken.value) {
+                    const data = await playerService.createGuestPlayer();
+                    setGuestToken(data.guest_token);
+                }
+            }
+        }
+        catch {
+            clearIdentity();
+            try {
+                const data = await playerService.createGuestPlayer();
+                setGuestToken(data.guest_token);
+            }
+            catch (e) {
+                console.error("Failed to generate backend guest token", e);
+            }
+        }
+    }
+
     return {
-        authToken,
+        authenticatedPlayerId,
         guestToken,
         player,
 
         isAuthenticated,
         hasGuestAccess,
-        isIdentityLoaded,
 
-        setAuthToken,
+        login,
         setGuestToken,
-        setPlayerProfile,
 
         clearGuestToken,
         clearIdentity,
+
+        checkSessionLifeCycle,
     }
 })

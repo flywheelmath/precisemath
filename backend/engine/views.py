@@ -1,7 +1,9 @@
+import uuid
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,9 +16,35 @@ from .models_prompt import (
 from .models_session import Player, PlayerSkillProfile
 from .serializers import (
     PromptSerializer,
-    SessionCreateSerializer,
+    SessionPayloadSerializer,
     SkillLevelDataSerializer,
 )
+from .utils.pseudonyms import generate_pseudonym
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_guest_player(request):
+    """
+    Creates an orphaned player object for guest sessions.
+    Returns UUID token to be passed in the X-Guest-Token header.
+    """
+    guest_uuid = uuid.uuid4()
+
+    player = Player.objects.create(
+        domain_identifier=guest_uuid,
+        is_guest=True,
+        pseudonym=generate_pseudonym(),
+    )
+
+    return Response({
+        "status": "success",
+        "guest_token": str(player.domain_identifier),
+        "id": str(player.domain_identifier),
+        "display_name": player.pseudonym,
+        "is_guest": True,
+        "pin": str(player.domain_identifier)[-4:].upper(),
+    }, status=status.HTTP_201_CREATED)
 
 
 @method_decorator(never_cache, name="get")
@@ -69,9 +97,6 @@ class SessionPromptsView(APIView):
         except (ValueError, TypeError):
             player_skill_level = 99
 
-        # temporarily disregard skill level
-        #player_skill_level = 99
-
         cache_key = f"prompts_{skill.id}-{player_skill_level}"
         cached_data = cache.get(cache_key)
         if cached_data:
@@ -107,13 +132,16 @@ class SessionResultsView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = SessionCreateSerializer(
+        serializer = SessionPayloadSerializer(
             data=request.data, context={"request": request}
         )
 
         if serializer.is_valid():
             session_instance = serializer.save()
-            from .models_session import PlayerSkillProfile
+
+            if serializer.validated_data.get("is_final", False):
+                compute_player_skill_level(player=session_instance.player, skill=session_instance.skill)
+
             new_level = PlayerSkillProfile.objects.get_profile_rank(
                 session_instance.player,
                 session_instance.skill

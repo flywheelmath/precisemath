@@ -5,13 +5,25 @@ import { useIdentityStore } from '@/stores/identity';
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/session-library'
+        component: () => import('@/views/DashboardView.vue'),
     },
     {
-        path: '/login',
-        name: 'login',
-//        component: () => import('@/features/accounts/views/LoginView.vue'),
+        path: '/signin',
+        name: 'signin',
+        component: () => import('@/views/auth/SignInView.vue'),
         meta: { requiresGuest: true },
+    },
+    {
+        path: '/password-reset',
+        name: 'password-reset',
+        component: () => import('@/views/auth/ChangePasswordView.vue'),
+        meta: { requiresIdentity: true },
+    },
+    {
+        path: '/delete',
+        name: 'delete',
+        component: () => import('@/views/auth/DeleteAccountView.vue'),
+        meta: { requiresIdentity: true },
     },
     {
         path: '/session/:category_slug/:skill_slug',

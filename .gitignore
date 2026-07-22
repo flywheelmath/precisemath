@@ -30,3 +30,5 @@ token.json
 *.swp
 staticfiles/
 draft/
+
+_old_src/

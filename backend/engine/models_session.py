@@ -18,9 +18,17 @@ class PlayerManager(models.Manager):
         if user and user.is_authenticated:
             if hasattr(user, "player"):
                 return user.player
+
+            auth_identifier = f"auth_user_{user.id}"
+            generated_name = generate_pseudonym(guest_token, is_guest=False)
+
             player, _ = self.get_or_create(
                 domain_identifier=f"auth_user_{user.id}",
-                defaults={"user": user, "is_guest": False}
+                defaults={
+                    "user": user,
+                    "is_guest": False,
+                    "pseudonym": generated_name,
+                }
             )
             return player
 

@@ -79,7 +79,7 @@ class PromptSerializer(ExcludeNullFieldsSerializer):
             return f"Error formatting prompt: {str(e)}"
 
 
-class PromptResponseCreateSerializer(serializers.Serializer):
+class PromptResponseSerializer(serializers.Serializer):
     """Serializer for validating each player response in the payload."""
 
     prompt_id = serializers.UUIDField()
@@ -98,7 +98,7 @@ class PromptResponseCreateSerializer(serializers.Serializer):
         ]
 
 
-class SessionCreateSerializer(serializers.Serializer):
+class SessionPayloadSerializer(serializers.Serializer):
     """
     Serializer for validating and creating and updating a session with its player responses.
     If a session_id is provided, it updates the existing session.
@@ -119,7 +119,7 @@ class SessionCreateSerializer(serializers.Serializer):
         max_length=50, required=False, allow_blank=True, write_only=True
     )
     is_final = serializers.BooleanField(default=False, write_only=True)
-    responses = PromptResponseCreateSerializer(many=True, write_only=True)
+    responses = PromptResponseSerializer(many=True, write_only=True)
 
     def create(self, validated_data):
         """
@@ -129,7 +129,6 @@ class SessionCreateSerializer(serializers.Serializer):
         session_id = validated_data.pop("session_id", None)
         responses_data = validated_data.pop("responses")
         guest_token = validated_data.pop("guest_token", None)
-        is_final = self.initial_data.get("is_final", False)
 
         player = Player.objects.resolve_player(user, guest_token)
         player.check_cache_window()
@@ -140,9 +139,6 @@ class SessionCreateSerializer(serializers.Serializer):
         else:
             session = self._create_new_session(player, validated_data)
             self._bulk_create_responses(session, responses_data)
-
-        if is_final:
-            compute_player_skill_level(player=player, skill=session.skill)
 
         return session
 

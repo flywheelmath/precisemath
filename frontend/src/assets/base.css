@@ -1,0 +1,158 @@
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --vt-c-white: #ffffff;
+  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-mute: #f2f2f2;
+
+  --vt-c-black: #181818;
+  --vt-c-black-soft: #222222;
+  --vt-c-black-mute: #282828;
+
+  --vt-c-indigo: #2c3e50;
+
+  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --vt-c-text-light-1: var(--vt-c-indigo);
+  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  --vt-c-text-dark-1: var(--vt-c-white);
+  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* semantic color variables for this project */
+:root {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white);
+  --color-background-mute: var(--vt-c-white-mute);
+
+  --color-border: var(--vt-c-divider-light-2);
+  --color-border-hover: var(--vt-c-divider-light-1);
+
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: var(--vt-c-text-light-1);
+
+  --section-gap: 160px;
+
+  --color-graph-bg: var(--color-background-mute);
+  --color-graph-axis: #2c3e50;
+  --color-graph-grid: #dfe6e9;
+  --color-graph-text: #2c3e50;
+
+  --color-graph-primary: #3498db;
+  --color-graph-hover: rgba(52, 152, 219, 0.5);
+
+  --color-graph-correct: #2ecc71;
+  --color-graph-incorrect: #e74c3c;
+
+  --color-ui-surface: #ffffff;
+  --color-ui-surface-soft: #f8f9fa;
+  --color-ui-border: #dfe6e9;
+  --color-ui-shadow: rgba(0, 0, 0, 0.1);
+
+  --color-ui-text-primary: #2c3e50;
+  --color-ui-text-secondary: #7f8c8d;
+  --color-ui-text-inverse: #ffffff;
+
+  --color-ui-input-bg: #ffffff;
+  --color-ui-button-bg: #ecf0f1;
+  --color-ui-button-text: #2c3e50;
+  --color-ui-button-hover: #bdc3c7;
+
+  --color-ui-primary: #3498db;
+  --color-ui-primary-hover: #2980b9;
+
+  --color-ui-secondary: #9b59b6;
+  --color-ui-secondary-hover: #8e44ad;
+
+  --color-ui-success: #2ecc71;
+  --color-ui-success-bg: rgba(46, 204, 113, 0.1);
+
+  --color-ui-danger: #e74c3c;
+  --color-ui-danger-hover: #c0392b;
+  --color-ui-danger-bg: rgba(231, 76, 60, 0.1);
+}
+
+:root.dark {
+  --color-background: var(--vt-c-black);
+  --color-background-soft: var(--vt-c-black-soft);
+  --color-background-mute: var(--vt-c-black-mute);
+
+  --color-border: var(--vt-c-divider-dark-2);
+  --color-border-hover: var(--vt-c-divider-dark-1);
+
+  --color-heading: var(--vt-c-text-dark-1);
+  --color-text: var(--vt-c-text-dark-2);
+
+  --color-graph-bg:  var(--color-background-mute);
+  --color-graph-axis: #ecf0f1;
+  --color-graph-grid: #4a6572;
+  --color-graph-text: #ecf0f1;
+
+  --color-graph-primary: #5dade2;
+  --color-graph-hover: rgba(93, 172, 226, 0.5);
+
+  --color-graph-correct: #2ecc71;
+  --color-graph-incorrect: #e74c3c;
+
+  --color-ui-surface: #2c3e50;
+  --color-ui-surface-soft: #3e5871;
+  --color-ui-border: #4a6572;
+  --color-ui-shadow: rgba(0, 0, 0, 0.3);
+
+  --color-ui-text-primary: #ecf0f1;
+  --color-ui-text-seconary: #bdc3c7;
+  --color-ui-text-inverse: #ecf0f1;
+
+  --color-ui-input-bg: #34495e;
+  --color-ui-button-bg: #34495e;
+  --color-ui-button-text: #ecf0f1;
+  --color-ui-button-hover: #4a6572;
+
+  --color-ui-primary: #5dade2;
+  --color-ui-primary-hover: #3498db;
+
+  --color-ui-secondary: #9b59b6;
+  --color-ui-secondary-hover: #8e44ad;
+
+  --color-ui-success: #2ecc71;
+  --color-ui-success-bg: rgba(46, 204, 113, 0.2);
+
+  --color-ui-danger: #e74c3c;
+  --color-ui-danger-hover: #c0392b;
+  --color-ui-danger-bg: rgba(231, 76, 60, 0.2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition: color 0.5s, background-color 0.5s;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -24,6 +24,8 @@ class User(AbstractUser):
     email = models.CharField(max_length=100, default="", blank=True)
     first_name = models.CharField(max_length=50, default="", blank=True)
     last_name = models.CharField(max_length=50, default="", blank=True)
+    has_oauth = models.BooleanField(default=False)
+    has_password = models.BooleanField(default=False)
     
     REQUIRED_FIELDS = []
 

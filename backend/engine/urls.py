@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from .views import (
     PlayerSkillLevelView,
     SessionPromptsView,
@@ -22,5 +23,10 @@ urlpatterns = [
         "",
         SessionResultsView.as_view(),
         name="session_results"
+    ),
+    path(
+        "player/guest/",
+        views.create_guest_player,
+        name="create_guest_player"
     ),
 ]
