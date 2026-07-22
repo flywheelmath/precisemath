@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import (
+    PlayerView,
     PlayerSkillLevelView,
     SessionPromptsView,
     SessionResultsView,
@@ -10,29 +11,23 @@ app_name = "engine"
 
 urlpatterns = [
     path(
-        "<slug:category_slug>/<slug:skill_slug>/level/",
+        "player/",
+        PlayerView.as_view(),
+        name="player_identity"
+    ),
+    path(
+        "player/level/<slug:category_slug>/<slug:skill_slug>/",
         PlayerSkillLevelView.as_view(),
         name="player_skill_level",
     ),
     path(
-        "<slug:category_slug>/<slug:skill_slug>/prompts/",
+        "sessions/prompts/<slug:category_slug>/<slug:skill_slug>/",
         SessionPromptsView.as_view(),
         name="session_prompts",
     ),
     path(
-        "",
+        "sessions/",
         SessionResultsView.as_view(),
         name="session_results"
     ),
-    path(
-        "player/guest/",
-        views.create_guest_player,
-        name="create_guest_player"
-    ),
-    path(
-        "player/",
-        views.get_or_create_player,
-        name="get_or_create_player"
-    ),
-
 ]

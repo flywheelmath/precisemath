@@ -1,9 +1,7 @@
 import hashlib
 from .constants import ADJECTIVES, NAMES
 
-def generate_pseudonym(identifier: str, is_guest: bool = False) -> str:
-    if is_guest: return f"Guest-{identifier}"
-
+def generate_pseudonym(identifier: str) -> str:
     hash_int = int(hashlib.md5(str(identifier).encode()).hexdigest(), 16)
     adj = ADJECTIVES[hash_int % len(ADJECTIVES)]
     math_name = NAMES[hash_int % len(NAMES)]

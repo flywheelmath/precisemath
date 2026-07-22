@@ -1,10 +1,63 @@
+import uuid
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Case, Count, FloatField, When
+from .models_prompt import Skill, SkillLevel
 from .models_session import (
-    PromptResponse,
+    Player,
     PlayerSkillProfile,
+    PromptResponse,
 )
+from .utils.pseudonyms import generate_pseudonym
 
-def compute_player_skill_level(player, skill):
+
+def provision_guest_player() -> Player:
+    uuid = uuid.uuid4()
+    player = Player.objects.create(
+        uuid=uuid,
+        is_guest=True,
+        pseudonym=generate_pseudonym(str(uuid))
+    )
+    return player
+
+
+def resolve_player(player_uuid: str) -> Player:
+    try:
+        player = Player.objects.get(uuid=player_uuid)
+    except (Player.DoesNotExist, ValueError):
+        raise ObjectDoesNotExist("Player {player_uuid} invalid.")
+
+    if player.is_guest:
+        cache_key = f"guest_active_window_{player.uuid}"
+        is_active = cache.get(cache_key)
+
+        if not is_active:
+            PlayerSkillProfile.objects.filter(player=player).delete()
+            cache.set(cache_key, True, timeout=7200)
+        else:
+            cache.touch(cache_key, timeout=7200)
+
+    return player
+
+
+def get_player_skill_level(player: Player, skill: Skill) -> int:
+    try:
+        profile = PlayerSkillProfile.objects.get(player=player, skill=skill)
+        return profile.player_skill_level
+    except PlayerSkillProfile.DoesNotExist:
+        return 99 if player.is_guest else 1
+
+
+def update_player_skill_level(player: Player, skill: Skill, new_level: int) -> Player:
+    profile, created = PlayerSkillProfile.objects.update_or_create(
+        player=player,
+        skill=skill,
+        defaults={"player_skill_level": new_level},
+    )
+    return profile
+
+
+def compute_player_skill_level(player: Player, skill: Skill):
     """
     Computes and updates the skill rank for specific Player.
     """
@@ -17,6 +70,8 @@ def compute_player_skill_level(player, skill):
     ).values_list('id', flat=True)[:300]
 
     if not response_ids: return 1
+
+    current_level = get_player_skill_level(player, skill)
 
     level_stats = PromptResponse.objects.filter(
         id__in=list(response_ids)
@@ -46,19 +101,21 @@ def compute_player_skill_level(player, skill):
             stats['accuracy'] = cumulative_correct_count / cumulative_count
             stats['avg_ms'] = cumulative_total_ms / cumulative_count
 
-    profile, _ = PlayerSkillProfile.objects.get_or_create(player=player, skill=skill)
-    if frontier_rank is None:
-        return profile.player_skill_level
+    if frontier_rank is None: return current_level
 
     ipm = 60000.0 / stats['avg_ms'] if stats['avg_ms'] > 0 else 0
     is_fluent = (stats['accuracy'] >= skill.target_accuracy and ipm >= skill.target_speed)
 
+    new_level = current_level
     if is_fluent:
-        if frontier_rank >= profile.player_skill_level:
-            profile.player_skill_level = frontier_rank + 1
+        if frontier_rank >= current_level:
+            new_level = frontier_rank + 1
     else:
-        if frontier_rank <= profile.player_skill_level and stats['accuracy'] < (skill.target_accuracy * 0.7):
-            profile.player_skill_level = max(1, profile.player_skill_level - 1)
+        if frontier_rank <= current_level and stats['accuracy'] < (skill.target_accuracy * 0.7):
+            new_level = max(1, current_level - 1)
 
-    profile.save()
-    return profile.player_skill_level
+    if new_level != current_level:
+        update_player_skill_level(player, skill, new_level)
+        return new_level
+
+    return current_level

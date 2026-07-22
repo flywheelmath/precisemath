@@ -1,6 +1,7 @@
-from django.contrib.auth import get_user_model
-from django.core.cache import cache
+import uuid
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
+
 from .models_prompt import (
     Category,
     SkillLevel,
@@ -8,16 +9,12 @@ from .models_prompt import (
     Skill,
 )
 from .models_session import (
+    Player,
     PromptResponse,
     Session,
-    Player,
-    PlayerSkillProfile,
 )
 from .logic.formatting import enrich_math_data
-from .services import compute_player_skill_level
-from .utils.pseudonyms import generate_pseudonym
-
-User = get_user_model()
+from .services import get_player_skill_level, resolve_player
 
 
 class ExcludeNullFieldsSerializer(serializers.ModelSerializer):
@@ -88,15 +85,6 @@ class PromptResponseSerializer(serializers.Serializer):
     time_spent_ms = serializers.IntegerField(min_value=0)
     player_response = serializers.CharField(max_length=255, allow_blank=True)
 
-    class Meta:
-        fields = [
-            "prompt_id",
-            "sequence_index",
-            "was_correct",
-            "time_spent_ms",
-            "player_response",
-        ]
-
 
 class SessionPayloadSerializer(serializers.Serializer):
     """
@@ -106,6 +94,7 @@ class SessionPayloadSerializer(serializers.Serializer):
     """
 
     session_id = serializers.UUIDField(required=False, allow_null=True)
+    player_uuid = serializers.UUIDField(write_only=True)
     category_slug = serializers.SlugField(write_only=True)
     skill_slug = serializers.SlugField(write_only=True)
     start_time = serializers.DateTimeField(write_only=True)
@@ -115,9 +104,6 @@ class SessionPayloadSerializer(serializers.Serializer):
     device_info = serializers.CharField(
         max_length=255, required=False, allow_blank=True, write_only=True
     )
-    guest_token = serializers.CharField(
-        max_length=50, required=False, allow_blank=True, write_only=True
-    )
     is_final = serializers.BooleanField(default=False, write_only=True)
     responses = PromptResponseSerializer(many=True, write_only=True)
 
@@ -125,13 +111,14 @@ class SessionPayloadSerializer(serializers.Serializer):
         """
         This method contains the logic to create the database objects after data validation.
         """
-        user = self.context["request"].user
         session_id = validated_data.pop("session_id", None)
         responses_data = validated_data.pop("responses")
-        guest_token = validated_data.pop("guest_token", None)
+        player_uuid = validated_data.pop("player_uuid", None)
 
-        player = Player.objects.resolve_player(user, guest_token)
-        player.check_cache_window()
+        try:
+            player = resolve_player(str(player_uuid))
+        except ObjectDoesNotExist as e:
+            raise serializers.ValidationError(str(e))
 
         if session_id:
             session = self._update_existing_session(session_id, player, validated_data)
@@ -142,7 +129,7 @@ class SessionPayloadSerializer(serializers.Serializer):
 
         return session
 
-    def _update_existing_session(self, session_id, player: Player, validated_data) -> Session:
+    def _update_existing_session(self, session_id: uuid.UUID, player: Player, validated_data) -> Session:
         try:
             session = Session.objects.get(id=session_id)
             if session.player != player:
@@ -171,12 +158,8 @@ class SessionPayloadSerializer(serializers.Serializer):
         except (Category.DoesNotExist, Skill.DoesNotExist):
             raise serializers.ValidationError("The specified category or skill does not exist.")
 
-        profile, _ = PlayerSkillProfile.objects.get_or_create_profile(player, skill)
-
-        try:
-            skill_level_obj = SkillLevel.objects.get(skill=skill, skill_level_rank=profile.player_skill_level)
-        except SkillLevel.DoesNotExist:
-            skill_level_obj = None
+        active_rank = get_player_skill_level(player, skill)
+        skill_level_obj = SkillLevel.objects.filter(skill=skill, skill_level_rank=active_rank).first()
 
         return Session.objects.create(
             player=player,

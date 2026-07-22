@@ -250,29 +250,6 @@ def uuid_batch_sync(request):
 
     return Response(response_payload, status=status.HTTP_200_OK)
 
-@api_view(["GET"])
-def get_current_profile(request):
-    """
-    Checks the incoming session cookie or falls back to X-Guest-Token header.
-    Serves a unified zero-knowledge identity metadata block back to the UI.
-    """
-    user = request.user
-    guest_token = request.headers.get("X-Guest-Token")
-
-    try:
-        player = Player.objects.resolve_player(user, guest_token)
-
-        return Response({
-            "id": str(player.domain_identifier),
-            "is_guest": player.is_guest,
-            "display_name": player.pseudonym,
-            "pin": str(player.domain_identifier)[-4:].upper(),
-            "isAuthenticated": user.is_authenticated,
-        }, status=status.HTTP_200_OK)
-
-    except ValidationError as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def session_logout(request):
