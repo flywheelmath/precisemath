@@ -12,11 +12,11 @@ from .utils.pseudonyms import generate_pseudonym
 
 
 def provision_guest_player() -> Player:
-    uuid = uuid.uuid4()
+    player_uuid = uuid.uuid4()
     player = Player.objects.create(
-        uuid=uuid,
+        uuid=player_uuid,
         is_guest=True,
-        pseudonym=generate_pseudonym(str(uuid))
+        pseudonym=generate_pseudonym(str(player_uuid))
     )
     return player
 

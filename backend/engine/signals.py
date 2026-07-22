@@ -1,4 +1,3 @@
-import uuid
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -17,7 +16,7 @@ def provision_player(sender, instance, created, **kwargs):
         Player.objects.get_or_create(
             user=instance,
             defaults={
-                "is_guest": false,
+                "is_guest": False,
                 "pseudonym": generate_pseudonym(str(instance.id)),
             }
         )

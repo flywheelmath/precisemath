@@ -12,9 +12,9 @@ const isResolvingAuth = ref(true);
 
 onMounted(async () => {
     try {
-        await identityStore.checkSessionLifeCycle();
+        await identityStore.fetchCurrentPlayer();
         if (identityStore.isPlayer) {
-            await sessionStore.fetchSessionPrompts();
+//            await sessionStore.fetchSessionPrompts();
         }
     } catch (err) {
         console.error("Initialization error handling session parameters:", err);
@@ -25,8 +25,8 @@ onMounted(async () => {
 
 async function handleContinueAsGuest() {
     try {
-        await identityStore.commitGuestPlayer();
-        await sessionStore.fetchSessionPrompts();
+        await identityStore.initializeGuestPlayer();
+//        await sessionStore.fetchSessionPrompts();
     } catch (err) {
         console.error("Failed to execute guest token chaining flow:", err);
     }

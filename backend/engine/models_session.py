@@ -16,7 +16,8 @@ class Player(models.Model):
     uuid = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
-        editable=False,
+        unique=True,
+        editable=False
     )
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -37,8 +38,9 @@ class Player(models.Model):
 
 class PlayerSkillProfile(models.Model):
     player = models.ForeignKey(
-        Player,
+        "Player",
         on_delete=models.CASCADE,
+        null=True,
         related_name="skill_profiles",
     )
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
@@ -59,10 +61,10 @@ class Session(models.Model):
         editable=False,
     )
     player = models.ForeignKey(
-        Player,
+        "Player",
         on_delete=models.CASCADE,
-        null=False,
-        blank=True
+        null=True,
+        related_name="sessions",
     )
     player_skill_level = models.ForeignKey(
         SkillLevel,

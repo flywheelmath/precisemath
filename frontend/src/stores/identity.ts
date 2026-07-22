@@ -26,7 +26,18 @@ export const useIdentityStore = defineStore('identity', () => {
         localStorage.removeItem('player_token');
     }
 
-    async function checkSessionLifeCycle() {
+    async function initializeGuestPlayer() {
+        try {
+            const response = await api.post<Player>('/engine/player/');
+            login(response.data.id, response.data);
+        }
+        catch (e) {
+            console.error("Failed to initialize guest profile on backend", e);
+            throw e;
+        }
+    }
+
+    async function fetchCurrentPlayer() {
         if (!playerToken.value) {
             clearIdentity();
             return;
@@ -53,6 +64,7 @@ export const useIdentityStore = defineStore('identity', () => {
         login,
         clearIdentity,
 
-        checkSessionLifeCycle,
+        initializeGuestPlayer,
+        fetchCurrentPlayer,
     }
 })
