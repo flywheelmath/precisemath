@@ -24,10 +24,10 @@ export function useSessionApi() {
         categorySlug.value = category;
         skillSlug.value = skill;
 
-        const levelData = await api.get<PlayerSkillProfile>(`/sessions/${category}/${skill}/level/`);
+        const levelData = await api.get<PlayerSkillProfile>(`/engine/player/level/${category}/${skill}/`);
         playerSkillLevel.value = levelData.data.player_skill_level;
 
-        const promptData = await api.get(`/sessions/${category}/${skill}/prompts/?player_skill_level=${playerSkillLevel.value}`);
+        const promptData = await api.get(`/engine/sessions/prompts/${category}/${skill}/?player_skill_level=${playerSkillLevel.value}`);
 
         allPrompts.value = promptData.data.prompts;
         skillLevels.value = promptData.data.skill_levels || [];
@@ -35,7 +35,7 @@ export function useSessionApi() {
 
     async function submitSessionPayload(payload: SessionPayload) {
         if (!categorySlug.value || !skillSlug.value) return;
-        await api.post(`/sessions/`, payload);
+        await api.post(`/engine/sessions/`, payload);
     }
 
     function resetData() {

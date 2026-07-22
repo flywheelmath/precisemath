@@ -18,8 +18,8 @@ api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const identityStore = useIdentityStore()
 
-        if (!identityStore.isAuthenticated && identityStore.guestToken) {
-            config.headers['X-Guest-Token'] = identityStore.guestToken;
+        if (identityStore.playerToken) {
+            config.headers['X-Player-Token'] = identityStore.playerToken;
         }
 
         return config;
@@ -32,7 +32,7 @@ api.interceptors.response.use(
     async (error) => {
         const identityStore = useIdentityStore()
 
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 404) {
             identityStore.clearIdentity()
         }
 

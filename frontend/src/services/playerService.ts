@@ -1,11 +1,9 @@
 import { api } from './api';
+import type { Player } from '@/types';
 
 export const playerService = {
-    async createGuestPlayer(uuid: string, displayName: string) {
-        const response = await api.post('sessions/player/guest/',{
-            uuid,
-            display_name: displayName,
-        });
+    async provisionGuestPlayer(uuid: string, displayName: string) {
+        const response = await api.post<Player>('/engine/player/');
         return response.data;
     },
 };

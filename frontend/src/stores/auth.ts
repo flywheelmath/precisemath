@@ -30,12 +30,12 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (requiresConfirmation.value) {
             try {
-                const signupData = await authService.signupWithCredentials(identifierStr, passwordStr);
-                identityStore.login(signupData.uuid, {
-                    id: signupData.uuid,
+                const response = await authService.signupWithCredentials(identifierStr, passwordStr);
+                identityStore.login(response.uuid, {
+                    id: response.uuid,
                     is_guest: false,
                     display_name: identifierStr,
-                    pin: signupData.uuid.slice(-4),
+                    pin: response.uuid.slice(-4),
                 });
                 requiresConfirmation.value = false;
                 await router.push('/');
@@ -57,12 +57,12 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         try {
-            const loginData = await authService.loginWithCredentials(identifierStr, passwordStr);
-            identityStore.login(loginData.uuid, {
-                id: loginData.uuid,
+            const response = await authService.loginWithCredentials(identifierStr, passwordStr);
+            identityStore.login(response.uuid, {
+                id: response.uuid,
                 is_guest: false,
                 display_name: identifierStr,
-                pin: loginData.uuid.slice(-4),
+                pin: response.uuid.slice(-4),
             });
             resetAuthState();
             await router.push('/');
