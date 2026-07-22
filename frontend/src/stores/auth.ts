@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     function clearError() {
         error.value = null;
         requiresGoogleLink.value = false;
-        pendingLinkToken.value = false;
+        pendingLinkToken.value = null;
     }
 
     async function signInWithCredentials(identifierStr: string, passwordStr: string) {
@@ -86,14 +86,6 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    function resetAuthState() {
-        error.value = null;
-        requiresGoogleLink.value = false;
-        requiresConfirmation.value = false;
-        pendingLinkToken.value = null;
-        isLoading.value = false;
-    }
-
     async function signInWithGoogle(idToken: string) {
         isLoading.value = true;
         error.value = null;
@@ -107,8 +99,8 @@ export const useAuthStore = defineStore('auth', () => {
             identityStore.login(data.uuid, {
                 id: data.uuid,
                 is_guest: false,
-                display_name: 'Google User',
-                pin: data.uuid.slice(-4)
+                display_name: data.display_name,
+                pin: data.pin,
             });
             resetAuthState();
             await router.push('/');
@@ -157,6 +149,14 @@ export const useAuthStore = defineStore('auth', () => {
         finally {
             isLoading.value = false;
         }
+    }
+
+    function resetAuthState() {
+        error.value = null;
+        requiresGoogleLink.value = false;
+        requiresConfirmation.value = false;
+        pendingLinkToken.value = null;
+        isLoading.value = false;
     }
 
     return {

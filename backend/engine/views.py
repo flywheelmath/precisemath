@@ -1,10 +1,11 @@
 import uuid
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -22,6 +23,37 @@ from .serializers import (
 from .utils.pseudonyms import generate_pseudonym
 
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_or_create_player(request):
+    user_id = request.headers.get("X-User-Identifier")
+    guest_id = request.headers.get("X-Guest-Identifier")
+
+    if not user_id and not guest_id:
+        return Response({"error": "User ID or Guest ID required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if user_id:
+        player, created = Player.objects.get_or_create(
+            domain_identifier=user_id,
+            defaults={
+                "is_guest": False,
+                "pseudonym": generate_pseudonym(user_id)
+            }
+        )
+
+    else:
+        player = Player.objects.filter(domain_identifier=guest_id, is_guest=True).first()
+        if not player:
+            return Response({"error": "Guest player profile expired or not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response({
+        "id": str(player.domain_identifier),
+        "is_guest": player.is_guest,
+        "display_name": player.pseudonym,
+        "pin": str(player.domain_identifier)[-4:].upper()
+    }, status=status.HTTP_200_OK)
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def create_guest_player(request):
@@ -34,7 +66,7 @@ def create_guest_player(request):
     player = Player.objects.create(
         domain_identifier=guest_uuid,
         is_guest=True,
-        pseudonym=generate_pseudonym(),
+        pseudonym=generate_pseudonym(guest_uuid),
     )
 
     return Response({

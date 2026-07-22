@@ -29,7 +29,7 @@ export const useSessionStore = defineStore('session', () => {
         return moduleKey.value ? getSkillModule(moduleKey.value) : null;
     });
 
-    async getSessionPayload(isFinal = false): SessionPayload | null {
+    async function getSessionPayload(isFinal = false): SessionPayload | null {
         if (!startTimeStr.value || engineStore.sessionLog.value.history.length === 0) return null; 
 
         return {
@@ -91,7 +91,7 @@ export const useSessionStore = defineStore('session', () => {
         feedbackStore.clearFeedback();
     }
 
-    function finishSession() {
+    async function finishSession() {
         engineStore.end();
         syncStore.stopAutoSync();
 

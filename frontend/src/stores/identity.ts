@@ -3,9 +3,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
+import { api } from '@/services/api';
 import { playerService } from '@/services/playerService';
 import type { Player } from '@/types/models';
-import { api } from '@/services/api';
 
 export const useIdentityStore = defineStore('identity', () => {
     const authenticatedPlayerId = ref<string | null>(localStorage.getItem('auth_player_id'));
@@ -13,7 +13,7 @@ export const useIdentityStore = defineStore('identity', () => {
     const player = ref<Player | null>(null);
 
     const isAuthenticated = computed<boolean>(() => !!authenticatedPlayerId.value);
-    const hasGuestAccess = computed<boolean>(() => !!guestToken.value);
+    const isPlayer = computed<boolean>(() => !!player.value);
 
     function login(playerId: string, profile: PlayerProfile) {
         authenticatedPlayerId.value = playerId;
@@ -32,6 +32,24 @@ export const useIdentityStore = defineStore('identity', () => {
         localStorage.removeItem('guest_token');
     }
 
+    async function commitGuestPlayer() {
+        try {
+            const data = await playerService.createGuestPlayer();
+            guestToken.value = data.guest_token;
+            localStorage.setItem('guest_token', data.guest_token);
+            player.value = {
+                id: data.id,
+                is_guest: true,
+                display_name: data.display_name,
+                pin: data.pin
+            };
+        }
+        catch (e) {
+            console.error("Failed to initialize guest profile on backend", e);
+            throw e;
+        }
+    }
+
     function clearIdentity() {
         authenticatedPlayerId.value = null;
         guestToken.value = null;
@@ -41,33 +59,44 @@ export const useIdentityStore = defineStore('identity', () => {
     }
 
     async function checkSessionLifeCycle() {
+        const userId = localStorage.getItem('auth_player_id');
+        const guestId = localStorage.getItem('guest_token');
+
+        if (!userId && !guestId) {
+            clearIdentity();
+            return;
+        }
+
         try {
-            const response = await api.get('/auth/profile/');
-            if (response.data.isAuthenticated) {
+            const headers = {};
+            if (userId) {
+                headers['X-User-Identifier'] = userId;
+            } else if (guestId) {
+                headers['X-Guest-Identifier'] = guestId;
+            }
+
+            const response = await api.get('/sessions/player/', { headers: headers });
+
+            player.value = {
+                id: response.data.id,
+                is_guest: response.data.is_guest,
+                display_name: response.data.display_name,
+                pin: response.data.pin,
+            } as Player;
+
+            if (!response.data.is_guest) {
                 authenticatedPlayerId.value = response.data.id;
                 localStorage.setItem('auth_player_id', response.data.id);
-                player.value = {
-                    id: response.data.id,
-                    is_guest: false,
-                    display_name: response.data.display_name,
-                } as Player;
+                clearGuestToken();
             }
             else {
-                if (!guestToken.value) {
-                    const data = await playerService.createGuestPlayer();
-                    setGuestToken(data.guest_token);
-                }
+                guestToken.value = response.data.id;
+                localStorage.setItem('guest_token', response.data.id);
             }
         }
-        catch {
+        catch (e) {
+            console.error("Profile synchronization mapping failed:", e);
             clearIdentity();
-            try {
-                const data = await playerService.createGuestPlayer();
-                setGuestToken(data.guest_token);
-            }
-            catch (e) {
-                console.error("Failed to generate backend guest token", e);
-            }
         }
     }
 
@@ -77,10 +106,11 @@ export const useIdentityStore = defineStore('identity', () => {
         player,
 
         isAuthenticated,
-        hasGuestAccess,
+        isPlayer,
 
         login,
         setGuestToken,
+        commitGuestPlayer,
 
         clearGuestToken,
         clearIdentity,

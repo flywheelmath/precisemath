@@ -77,7 +77,7 @@ def google_oauth_login(request):
         response_payload = {
             "status": "success",
             "uuid": str(user.uuid),
-            "new_account": created
+            "new_account": created,
         }
 
         return Response(response_payload, status=status.HTTP_200_OK)

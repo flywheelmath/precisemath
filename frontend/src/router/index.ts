@@ -26,6 +26,11 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresIdentity: true },
     },
     {
+        path: '/session',
+        name: 'session',
+        component: () => import('@/views/engine/SessionView.vue'),
+    },
+    {
         path: '/session/:category_slug/:skill_slug',
         name: 'session-arena',
 //        component: () => import('@features/session-engine/views/ArenaView.vue'),

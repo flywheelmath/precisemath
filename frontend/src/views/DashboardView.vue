@@ -2,6 +2,7 @@
 import { useIdentityStore } from '@/stores/identity';
 import { useAuthStore } from '@/stores/auth';
 import LogOutButton from '@/components/auth/LogOutButton.vue';
+import PseudonymDisplay from '@/components/auth/PseudonymDisplay.vue';
 
 const identityStore = useIdentityStore();
 const authStore = useAuthStore();
@@ -16,7 +17,8 @@ const authStore = useAuthStore();
       
       <div class="user-menu">
         <div class="user-info">
-          <span class="display-name">👤 {{ identityStore.displayName || 'Loading...' }}</span>
+          <PseudonymDisplay />
+
           <span v-if="identityStore.isGuest" class="guest-badge">Guest</span>
           <span v-if="identityStore.pin" class="pin-badge">PIN: {{ identityStore.pin }}</span>
         </div>

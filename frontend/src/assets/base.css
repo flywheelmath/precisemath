@@ -156,3 +156,47 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* =========================================
+   AUTH-SPECIFIC THEMES (GUEST VS REGISTERED)
+   ========================================= */
+
+/* Guest Theme - Light Mode (Warm, Amber tint) */
+:root.theme-guest {
+  --color-background: #fffbf5; /* Warm off-white */
+  --color-background-soft: #fdf6e3;
+  --color-background-mute: #f5eedc;
+
+  --color-ui-primary: #e67e22; /* Carrot Orange */
+  --color-ui-primary-hover: #d35400;
+
+  --color-graph-primary: #e67e22;
+  --color-graph-hover: rgba(230, 126, 34, 0.5);
+}
+
+/* Guest Theme - Dark Mode (Warm, Sepia/Brown tint) */
+:root.theme-guest.dark {
+  --color-background: #1e1b18;
+  --color-background-soft: #2a2520;
+  --color-background-mute: #332d27;
+
+  --color-ui-surface: #2a2520;
+  --color-ui-surface-soft: #3a332d;
+  --color-ui-border: #4a4038;
+
+  --color-ui-primary: #d35400;
+  --color-ui-primary-hover: #e67e22;
+}
+
+/* Registered Theme - Light Mode (Defaults to your standard cool blue) */
+:root.theme-registered {
+  /* Inherits standard crisp white and blue from base :root */
+}
+
+/* Registered Theme - Dark Mode (Cool Navy/Slate tint) */
+:root.theme-registered.dark {
+  /* Emphasize the cool slate tones to contrast with the warm guest theme */
+  --color-background: #12161a;
+  --color-background-soft: #1a2026;
+  --color-background-mute: #222a33;
+}

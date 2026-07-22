@@ -63,7 +63,7 @@ function handleCancel() {
                     @error="handleGoogleError"
                     :disabled="authStore.isLoading"
                 />
-                <p class="oauth-hint">Secure one-click access. Automatically registers if new.</p>
+                <p class="oauth-hint">One-click access</p>
             </div>
 
             <div v-if="!authStore.requiresGoogleLink" class="divider">

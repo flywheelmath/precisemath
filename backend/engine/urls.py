@@ -29,4 +29,10 @@ urlpatterns = [
         views.create_guest_player,
         name="create_guest_player"
     ),
+    path(
+        "player/",
+        views.get_or_create_player,
+        name="get_or_create_player"
+    ),
+
 ]
