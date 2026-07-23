@@ -8,22 +8,25 @@ import type { Player } from '@/types';
 
 export const useIdentityStore = defineStore('identity', () => {
     const playerToken = ref<string | null>(localStorage.getItem('player_token'));
-    const player = ref<Player | null>(null);
+    const cachedPlayer = localStorage.getItem('cached_player_profile');
+    const player = ref<Player | null>(cachedPlayer ? JSON.parse(cachedPlayer) : null);
 
     const hasIdentity = computed<boolean>(() => !!playerToken.value);
-    const isAuthenticated = computed<boolean>(() => !!playerToken.value && !player.value?.is_guest);
+    const isAuthenticated = computed<boolean>(() => !!playerToken.value && !!player.value && !player.value?.is_guest);
     const isPlayer = computed<boolean>(() => !!player.value);
 
     function login(token: string, profile: Player) {
-        playerToken.value = token
+        console.log(profile);
+        playerToken.value = token;
         localStorage.setItem('player_token', token);
-        player.value = profile;
+        player.value = profile
     }
 
     function clearIdentity() {
         playerToken.value = null;
         player.value = null;
         localStorage.removeItem('player_token');
+        localStorage.removeItem('cached_player_profile');
     }
 
     async function initializeGuestPlayer() {
@@ -43,11 +46,15 @@ export const useIdentityStore = defineStore('identity', () => {
             return;
         }
 
+        if (player.value && !player.value.is_guest) return;
+
         try {
             const response = await api.get<Player>('/engine/player/');
             login(response.data.id, response.data);
+
+            localStorage.setItem('cached_player_profile', JSON.stringify(response.data));
         }
-       catch (e) {
+        catch (e) {
             console.error("Profile synchronization mapping failed:", e);
             clearIdentity();
         }

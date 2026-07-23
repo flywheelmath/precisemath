@@ -128,6 +128,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
         finally {
             isLoading.value = false;
+            identityStore.clearIdentity;
+            router.push({ name: 'signin' });
         }
     }
 

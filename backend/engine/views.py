@@ -46,6 +46,14 @@ class PlayerView(APIView):
             return Response({"error": "Player not found or expired."}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
+        guest_token = request.headers.get("X-Player-Token")
+        if guest_token:
+            try:
+                player = resolve_player(guest_token)
+                return Response(self._build_payload(player), status=status.HTTP_200_OK)
+            except ObjectDoesNotExist:
+                pass
+
         player = provision_guest_player()
         return Response(self._build_payload(player), status=status.HTTP_201_CREATED)
 

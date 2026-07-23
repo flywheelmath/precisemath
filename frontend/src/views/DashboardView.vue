@@ -1,11 +1,23 @@
 <script setup lang="ts">
+import { onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useIdentityStore } from '@/stores/identity';
-import { useAuthStore } from '@/stores/auth';
 import LogOutButton from '@/components/auth/LogOutButton.vue';
 import PseudonymDisplay from '@/components/auth/PseudonymDisplay.vue';
 
 const identityStore = useIdentityStore();
-const authStore = useAuthStore();
+onMounted(async () => {
+    try {
+        await identityStore.fetchCurrentPlayer();
+        if (identityStore.isPlayer) {
+//            await sessionStore.fetchSessionPrompts();
+        }
+    } catch (err) {
+        console.error("Initialization error handling session parameters:", err);
+    } finally {
+        isResolvingAuth.value = false;
+    }
+});
 </script>
 
 <template>
@@ -19,8 +31,8 @@ const authStore = useAuthStore();
         <div class="user-info">
           <PseudonymDisplay />
 
-          <span v-if="identityStore.isGuest" class="guest-badge">Guest</span>
-          <span v-if="identityStore.pin" class="pin-badge">PIN: {{ identityStore.pin }}</span>
+          <span v-if="!identityStore.isAuthenticated" class="guest-badge">Guest</span>
+          <span v-if="identityStore.player?.pin" class="pin-badge">PIN: {{ identityStore.player?.pin }}</span>
         </div>
         
         <LogOutButton />
@@ -35,8 +47,8 @@ const authStore = useAuthStore();
         <div class="status-box">
           <p><strong>Identity Status:</strong></p>
           <ul>
-            <li><strong>ID:</strong> {{ identityStore.id }}</li>
-            <li><strong>Account Type:</strong> {{ identityStore.isGuest ? 'Anonymous Guest' : 'Registered User' }}</li>
+            <li><strong>ID:</strong> {{ identityStore.isAuthenticated }}</li>
+            <li><strong>Account Type:</strong> {{ identityStore.isAuthenticated ? 'Registered User' : 'Anonymous Guest' }}</li>
           </ul>
         </div>
       </div>

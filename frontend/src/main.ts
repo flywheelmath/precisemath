@@ -4,6 +4,7 @@ import GoogleSignInPlugin from 'vue3-google-signin';
 
 import App from './App.vue';
 import router from './router';
+import { useIdentityStore } from './stores/identity';
 
 const app = createApp(App);
 
@@ -13,4 +14,19 @@ app.use(router);
 app.use(GoogleSignInPlugin, {
     clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
 })
-app.mount('#app');
+
+async function bootstrapApp() {
+    const identityStore = useIdentityStore()
+
+    try {
+        await identityStore.fetchCurrentPlayer();
+    }
+    catch (error) {
+        console.error("Core initialization failed:", error);
+    }
+    finally {
+        app.mount('#app');
+    }
+}
+
+bootstrapApp();
